@@ -59,8 +59,7 @@ async function getPromises(db, name) {
 
       results.push({
         query: queryName,
-        time: new Date().getTime() - start,
-        rows: rows // Adjust this according to what you want to store
+        time: new Date().getTime() - start
       });
     } catch (error) {
       console.error(`[${name}] Error executing ${queryName}:`, error);
@@ -80,10 +79,14 @@ async function runQueries() {
     console.log('All queries executed.');
     console.log('-----------------');
     console.log('DB1 Results:');
-    console.log(db1Results);
+    db1Results.forEach((result) => {
+      console.log(`${result.query}: ${result.time}ms`);
+    });
     console.log('-----------------');
     console.log('DB2 Results:');
-    console.log(db2Results);
+    db2Results.forEach((result) => {
+      console.log(`${result.query}: ${result.time}ms`);
+    });
   } catch (error) {
     console.error('Error executing queries:', error);
   }
