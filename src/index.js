@@ -32,41 +32,48 @@ fs.readdirSync('./src/queries').forEach((file) => {
   queries[queryName] = fs.readFileSync(`./src/queries/${file}`, 'utf8');
 });
 
-function getPromises(db, name) {
+async function getPromises(db, name) {
   if (!db) {
     return [];
   }
 
-  return Object.keys(queries).map((queryName) => {
-    return new Promise((resolve, reject) => {
-      const query = queries[queryName];
-      const start = new Date().getTime();
+  const results = [];
+  const queryNames = Object.keys(queries);
 
-      db.query(query, (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          const end = new Date().getTime();
+  for (const queryName of queryNames) {
+    const query = queries[queryName];
+    const start = new Date().getTime();
 
-          console.log(`[${name}] Completed ${queryName} in ${end - start}ms`);
-
-          resolve({
-            query: queryName,
-            time: end - start,
-          });
-        }
+    try {
+      const rows = await new Promise((resolve, reject) => {
+        db.query(query, (err, rows) => {
+          if (err) {
+            reject(err);
+          } else {
+            const end = new Date().getTime();
+            console.log(`[${name}] Completed ${queryName} in ${end - start}ms`);
+            resolve(rows);
+          }
+        });
       });
-    });
-  });
+
+      results.push({
+        query: queryName,
+        time: new Date().getTime() - start,
+        rows: rows // Adjust this according to what you want to store
+      });
+    } catch (error) {
+      console.error(`[${name}] Error executing ${queryName}:`, error);
+    }
+  }
+
+  return results;
 }
 
 async function runQueries() {
-  const db1Promises = getPromises(db1, 'DB1');
-  const db2Promises = getPromises(db2, 'DB2');
-
   try {
-    const db1Results = await Promise.all(db1Promises);
-    const db2Results = await Promise.all(db2Promises);
+    const db1Results = await getPromises(db1, 'DB1');
+    const db2Results = await getPromises(db2, 'DB2');
 
     console.log('All queries executed.');
     console.log('-----------------');
