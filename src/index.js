@@ -72,27 +72,24 @@ async function getPromises(db, name) {
 
 async function runQueries() {
   try {
-    const db1Results = await getPromises(db1, 'DB1');
-    const db2Results = await getPromises(db2, 'DB2');
+    const [db1Results, db2Results] = await Promise.all([
+      getPromises(db1, 'DB1'),
+      getPromises(db2, 'DB2')
+    ]);
 
     console.log('All queries executed.');
     console.log('-----------------');
     console.log('DB1 Results:');
-    db1Results?.map((result) => {
-      console.log(`${result.query}: ${result.time}ms`);
-    });
-    if (compare) {
-      console.log('-----------------');
-      console.log('DB2 Results:');
-      db2Results?.map((result) => {
-        console.log(`${result.query}: ${result.time}ms`);
-      });
-    }
+    console.log(db1Results);
+    console.log('-----------------');
+    console.log('DB2 Results:');
+    console.log(db2Results);
   } catch (error) {
     console.error('Error executing queries:', error);
   }
 }
 
-runQueries().then(results => {
+runQueries().then(() => {
   process.exit();
 });
+
